@@ -5,6 +5,8 @@
  * Do not reference these action types directly in your code.
  */
 
+// 定义了一些 redux 保留的 action type。
+
 const randomString = () =>
   Math.random()
     .toString(36)

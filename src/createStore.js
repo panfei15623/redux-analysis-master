@@ -1,7 +1,9 @@
 import $$observable from 'symbol-observable'
 
 import ActionTypes from './utils/actionTypes'
+// 引入一些预定义的保留的 action type。
 import isPlainObject from './utils/isPlainObject'
+// 判断一个对象是否是纯对象。
 
 /**
  * Creates a Redux store that holds the state tree.
@@ -28,18 +30,26 @@ import isPlainObject from './utils/isPlainObject'
  * @returns {Store} A Redux store that lets you read the state, dispatch actions
  * and subscribe to changes.
  */
+// 使用 redux 最主要的 API，就是这个 createStore，它用于创建一个 redux store，为你提供状态管理。
+// 它接受三个参数（第二三个可选），第一个是 reducer，用于改变 redux store 的状态；第二个是初始化的 store,
+// 即最开始时候 store 的快照；第三个参数是由 applyMiddleware 函数返回的 enhancer 对象，使用中间件必须
+// 提供的参数。
 export default function createStore(reducer, preloadedState, enhancer) {
+  // 下面这一段基本可以不看，它们是对参数进行适配的。
+  /*************************************参数适配****************************************/
   if (
     (typeof preloadedState === 'function' && typeof enhancer === 'function') ||
     (typeof enhancer === 'function' && typeof arguments[3] === 'function')
   ) {
+    // 如果传递了多个 enhancer，抛出错误。
     throw new Error(
       'It looks like you are passing several store enhancers to ' +
         'createStore(). This is not supported. Instead, compose them ' +
         'together to a single function'
     )
   }
-
+  // 如果没有传递默认的 state（preloadedState 为函数类型，enhancer 为未定义类型），那么传递的
+  // preloadedState 即为 enhancer。
   if (typeof preloadedState === 'function' && typeof enhancer === 'undefined') {
     enhancer = preloadedState
     preloadedState = undefined
@@ -47,22 +57,31 @@ export default function createStore(reducer, preloadedState, enhancer) {
 
   if (typeof enhancer !== 'undefined') {
     if (typeof enhancer !== 'function') {
+      // 如果 enhancer 为不为空且非函数类型，报错。
       throw new Error('Expected the enhancer to be a function.')
     }
-
+    // 使用 enhancer 对 createStore 进行处理，引入中间件。
     return enhancer(createStore)(reducer, preloadedState)
   }
-
+  // 如果 reducer 不是函数类型，报错。
   if (typeof reducer !== 'function') {
     throw new Error('Expected the reducer to be a function.')
   }
+  /*********************************************************************************/
 
-  let currentReducer = reducer
-  let currentState = preloadedState
-  let currentListeners = []
-  let nextListeners = currentListeners
-  let isDispatching = false
+  // 在函数内部定义一系列局部变量，用于存储数据。
+  let currentReducer = reducer  // 存储当前的 reducer。
+  let currentState = preloadedState // 用于存储当前的 store，即为 state。  
+  let currentListeners = [] // 用于存储通过 store.subscribe 注册的当前的所有订阅者。
+  let nextListeners = currentListeners  // 新的 listeners 数组，确保不直接修改 listeners。
+  let isDispatching = false // 当前状态，防止 reducer 嵌套调用。
 
+  // 顾名思义，确保 nextListeners 可以被修改，当 nextListeners 与 currentListeners 指向同一个数组的时候
+  // 让 nextListeners 成为 currentListeners 的副本。防止修改 nextListeners 导致 currentListeners 发生变化。
+  // 一开始我也不是很明白为什么会存在 nextListeners，因为后面 dispatch 函数中还是直接把 nextListeners 赋值给了 currentListeners。
+  // 直接使用 currentListeners 也是可以的。后来去 redux 的 repo 搜了搜，发现了一个 issue（https://github.com/reduxjs/redux/issues/2157） 讲述了这个做法的理由。
+  // 提交这段代码的作者的解释（https://github.com/reduxjs/redux/commit/c031c0a8d900e0e95a4915ecc0f96c6fe2d6e92b）是防止 Array.slice 的滥用，只有在必要的时候调用 Array.slice 方法来复制 listeners。
+  // 以前的做法是每次 dispatch 都要 slice 一次，导致了性能的降低吧。
   function ensureCanMutateNextListeners() {
     if (nextListeners === currentListeners) {
       nextListeners = currentListeners.slice()
@@ -74,7 +93,9 @@ export default function createStore(reducer, preloadedState, enhancer) {
    *
    * @returns {any} The current state tree of your application.
    */
+  // 返回 currentState，即 store 的快照。
   function getState() {
+    // 防止在 reducer 中调用该方法，reducer 会接受 state 参数。
     if (isDispatching) {
       throw new Error(
         'You may not call store.getState() while the reducer is executing. ' +

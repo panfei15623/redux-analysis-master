@@ -17,9 +17,26 @@ const reducers = combineReducers({
 
 const store = createStore(reducers);
 
+store.subscribe(() => {
+  store.subscribe(() => {
+    console.log('wrapped!');
+  });
+});
+
 store.dispatch({
   type: 'ADD_ITEMS',
   payload: '123'
 });
+console.log(store.getState());
+
+store.dispatch({
+  type: 'ADD_ITEMS',
+  payload: '13'
+});
+
+store.dispatch({
+  type: 'DEL_ITEMS',
+  payload: '123'
+})
 
 console.log(store.getState().items);
