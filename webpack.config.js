@@ -1,8 +1,11 @@
 const path = require('path');
 const htmlWebpackPlugin = require('html-webpack-plugin');
 const cleanWebpackPlugin = require('clean-webpack-plugin');
+const Visualizer = require('webpack-visualizer-plugin');
+const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 
 module.exports = {
+  mode: 'production',
   entry: {
     index: path.resolve(__dirname, './src/test/index.js')
   },
@@ -21,6 +24,8 @@ module.exports = {
       inject: true,
       template: path.resolve(__dirname, './index.html')
     }),
-    new cleanWebpackPlugin(['dist'])
+    new cleanWebpackPlugin(['dist']),
+    new Visualizer(),
+    new BundleAnalyzerPlugin()
   ]
 };

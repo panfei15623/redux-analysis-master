@@ -130,6 +130,7 @@ export default function createStore(reducer, preloadedState, enhancer) {
    * @param {Function} listener A callback to be invoked on every dispatch.
    * @returns {Function} A function to remove this change listener.
    */
+  // store.subscribe 函数，订阅 dispatch。
   function subscribe(listener) {
     if (typeof listener !== 'function') {
       throw new Error('Expected the listener to be a function.')
@@ -145,10 +146,11 @@ export default function createStore(reducer, preloadedState, enhancer) {
     }
 
     let isSubscribed = true
-
+    // 每次操作 nextListeners 之前先确保可以修改。
     ensureCanMutateNextListeners()
     nextListeners.push(listener)
 
+    // 注销当前订阅者。
     return function unsubscribe() {
       if (!isSubscribed) {
         return
@@ -162,7 +164,7 @@ export default function createStore(reducer, preloadedState, enhancer) {
       }
 
       isSubscribed = false
-
+      // 每次操作 nextListeners 之前先确保可以修改。
       ensureCanMutateNextListeners()
       const index = nextListeners.indexOf(listener)
       nextListeners.splice(index, 1)
@@ -194,8 +196,10 @@ export default function createStore(reducer, preloadedState, enhancer) {
    * Note that, if you use a custom middleware, it may wrap `dispatch()` to
    * return something else (for example, a Promise you can await).
    */
+  // store.dispatch 函数，用于触发 reducer 修改 state。
   function dispatch(action) {
     if (!isPlainObject(action)) {
+      // action 必须是纯对象。
       throw new Error(
         'Actions must be plain objects. ' +
           'Use custom middleware for async actions.'
@@ -203,6 +207,7 @@ export default function createStore(reducer, preloadedState, enhancer) {
     }
 
     if (typeof action.type === 'undefined') {
+      // 每个 action 必须包含一个 type 属性，指定修改的类型。
       throw new Error(
         'Actions may not have an undefined "type" property. ' +
           'Have you misspelled a constant?'
@@ -214,18 +219,23 @@ export default function createStore(reducer, preloadedState, enhancer) {
     }
 
     try {
+      // 调用 reducer 之前，先将标志位置一。
       isDispatching = true
+      // 调用 reducer，返回的值即为最新的 state。
       currentState = currentReducer(currentState, action)
     } finally {
+      // 调用完之后将标志位置 0，表示 dispatch 结束。
       isDispatching = false
     }
 
+    // dispatch 结束之后，执行所有订阅者的函数。
     const listeners = (currentListeners = nextListeners)
     for (let i = 0; i < listeners.length; i++) {
       const listener = listeners[i]
       listener()
     }
 
+    // 返回当前所使用的 action，这一步是中间件嵌套使用的关键。
     return action
   }
 
@@ -239,11 +249,12 @@ export default function createStore(reducer, preloadedState, enhancer) {
    * @param {Function} nextReducer The reducer for the store to use instead.
    * @returns {void}
    */
+  // 一个比较新的 API，用于动态替换当前的 reducers。适用于按需加载，代码拆分等场景。
   function replaceReducer(nextReducer) {
     if (typeof nextReducer !== 'function') {
       throw new Error('Expected the nextReducer to be a function.')
     }
-
+    // 执行默认的 REPLACE 类型的 action。在 combineReducers 函数中有使用到这个类型。
     currentReducer = nextReducer
     dispatch({ type: ActionTypes.REPLACE })
   }
@@ -254,8 +265,13 @@ export default function createStore(reducer, preloadedState, enhancer) {
    * For more information, see the observable proposal:
    * https://github.com/tc39/proposal-observable
    */
+  // 这是为了适配 ECMA TC39 会议的一个有关 Observable 的提案（参考上方的网址）所写的一个函数。
+  // 作用是订阅 store 的变化，适用于所有实现了 Observable 的类库（主要是适配 RxJS）。
+  // 我找到了引入这个功能的那个 commit：https://github.com/reduxjs/redux/pull/1632。
   function observable() {
+    // outerSubscribe 即为外部的 subscribe 函数。
     const outerSubscribe = subscribe
+    // 返回一个纯对象，包含 subscribe 方法。
     return {
       /**
        * The minimal observable subscription method.
@@ -270,6 +286,7 @@ export default function createStore(reducer, preloadedState, enhancer) {
           throw new TypeError('Expected the observer to be an object.')
         }
 
+        // 用于给 subscribe 注册的函数，严格按照 Observable 的规范实现，observer 必须有一个 next 属性。
         function observeState() {
           if (observer.next) {
             observer.next(getState())
@@ -281,6 +298,7 @@ export default function createStore(reducer, preloadedState, enhancer) {
         return { unsubscribe }
       },
 
+      // $$observable 即为 Symbol.observable，也属于 Observable 的规范，返回自身。
       [$$observable]() {
         return this
       }
@@ -290,8 +308,10 @@ export default function createStore(reducer, preloadedState, enhancer) {
   // When a store is created, an "INIT" action is dispatched so that every
   // reducer returns their initial state. This effectively populates
   // the initial state tree.
+  // 初始化时 dispatch 一个 INIT 类型的 action，校验各种情况。
   dispatch({ type: ActionTypes.INIT })
 
+  // 返回一个 store 对象。
   return {
     dispatch,
     subscribe,

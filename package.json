@@ -47,7 +47,8 @@
     "prepare": "npm run clean && npm run format:check && npm run lint && npm test",
     "examples:lint": "eslint examples",
     "examples:test": "cross-env CI=true babel-node examples/testAll.js",
-    "dev": "webpack-dev-server --config ./webpack.config.js"
+    "dev": "webpack-dev-server --config ./webpack.config.js",
+    "package": "webpack"
   },
   "dependencies": {
     "loose-envify": "^1.4.0",
@@ -87,9 +88,11 @@
     "typescript": "^3.0.3",
     "typings-tester": "^0.3.2",
     "webpack": "^4.26.1",
+    "webpack-bundle-analyzer": "^3.0.3",
     "webpack-cli": "^3.1.2",
     "webpack-dev-server": "^3.1.10",
-    "webpack-merge": "^4.1.4"
+    "webpack-merge": "^4.1.4",
+    "webpack-visualizer-plugin": "^0.1.11"
   },
   "npmName": "redux",
   "npmFileMap": [
