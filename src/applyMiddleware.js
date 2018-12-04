@@ -16,8 +16,12 @@ import compose from './compose'
  * @param {...Function} middlewares The middleware chain to be applied.
  * @returns {Function} A store enhancer applying the middleware.
  */
+//　用于应用中间件的函数，可以同时传递多个中间件。中间件的标准形式为：
+//  const middleware = store => next => action => { /*.....*/ return next(action); }
 export default function applyMiddleware(...middlewares) {
+  //　返回一个函数，接受　createStore　作为参数。args 参数即为 reducer 和 preloadedState。
   return createStore => (...args) => {
+    // 调用 createStore 创建一个　store 对象。
     const store = createStore(...args)
     let dispatch = () => {
       throw new Error(

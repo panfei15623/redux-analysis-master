@@ -1,4 +1,4 @@
-import { createStore, combineReducers }  from '../index';
+import { createStore, combineReducers, applyMiddleware }  from '../index';
 
 const reducers = combineReducers({
   items(items = [], { type, payload }) {
@@ -15,19 +15,26 @@ const reducers = combineReducers({
   }
 });
 
-const store = createStore(reducers);
+const middleware1 = store => next => action => {
+  console.log('middleware 1!');
+  let res = next(action);
+  console.log(store.getState());
+  return res;
+}
 
-store.subscribe(() => {
-  store.subscribe(() => {
-    console.log('wrapped!');
-  });
-});
+const middleware2 = store => next => action => {
+  console.log('middleware 2!');
+  let res = next(action);
+  console.log(store.getState());
+  return res;
+}
+
+const store = createStore(reducers, applyMiddleware(middleware1, middleware2));
 
 store.dispatch({
   type: 'ADD_ITEMS',
   payload: '123'
 });
-console.log(store.getState());
 
 store.dispatch({
   type: 'ADD_ITEMS',
@@ -38,5 +45,3 @@ store.dispatch({
   type: 'DEL_ITEMS',
   payload: '123'
 })
-
-console.log(store.getState().items);

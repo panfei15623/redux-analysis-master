@@ -60,7 +60,7 @@ export default function createStore(reducer, preloadedState, enhancer) {
       // 如果 enhancer 为不为空且非函数类型，报错。
       throw new Error('Expected the enhancer to be a function.')
     }
-    // 使用 enhancer 对 createStore 进行处理，引入中间件。
+    // 使用 enhancer 对 createStore 进行处理，引入中间件。注意此处没有再传递　enhancer　作为参数。
     return enhancer(createStore)(reducer, preloadedState)
   }
   // 如果 reducer 不是函数类型，报错。
