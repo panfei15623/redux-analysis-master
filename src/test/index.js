@@ -1,4 +1,5 @@
 import { createStore, combineReducers, applyMiddleware }  from '../index';
+import reduxPromise from 'redux-promise';
 
 const reducers = combineReducers({
   items(items = [], { type, payload }) {
@@ -15,36 +16,33 @@ const reducers = combineReducers({
   }
 });
 
-const middleware1 = store => {
-  store.dispatch({
-    type: 'ADD_ITEMS',
-    payload: '12345'
-  });
-  return next => action => {
-    console.log('???');
-  }
+const middleware = store => next => action => {
+  return action.then ? action.then(next) : next(action);
 }
 
-const middleware2 = store => next => action => {
-  console.log('middleware 2!');
-  let res = next(action);
+const store = createStore(reducers, applyMiddleware(middleware));
+
+// store.dispatch({
+//   type: 'ADD_ITEMS',
+//   payload: '123'
+// });
+
+// store.dispatch({
+//   type: 'ADD_ITEMS',
+//   payload: '13'
+// });
+
+// store.dispatch({
+//   type: 'DEL_ITEMS',
+//   payload: '123'
+// })
+
+store.subscribe(() => {
   console.log(store.getState());
-  return res;
-}
-
-const store = createStore(reducers, applyMiddleware(middleware1, middleware2));
-
-store.dispatch({
-  type: 'ADD_ITEMS',
-  payload: '123'
-});
-
-store.dispatch({
-  type: 'ADD_ITEMS',
-  payload: '13'
-});
-
-store.dispatch({
-  type: 'DEL_ITEMS',
-  payload: '123'
 })
+
+store.dispatch(new Promise((resolve, reject) => {
+  window.setTimeout(() =>{
+    resolve({ type: 'ADD_ITEMS', payload: 100 });
+  }, 1000);
+}))
