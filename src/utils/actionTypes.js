@@ -6,7 +6,7 @@
  */
 
 // 定义了一些 redux 保留的 action type。
-
+// 随机字符串确保唯一性。
 const randomString = () =>
   Math.random()
     .toString(36)

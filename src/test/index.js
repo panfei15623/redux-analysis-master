@@ -15,11 +15,14 @@ const reducers = combineReducers({
   }
 });
 
-const middleware1 = store => next => action => {
-  console.log('middleware 1!');
-  let res = next(action);
-  console.log(store.getState());
-  return res;
+const middleware1 = store => {
+  store.dispatch({
+    type: 'ADD_ITEMS',
+    payload: '12345'
+  });
+  return next => action => {
+    console.log('???');
+  }
 }
 
 const middleware2 = store => next => action => {

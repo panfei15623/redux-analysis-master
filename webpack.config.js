@@ -5,7 +5,7 @@ const Visualizer = require('webpack-visualizer-plugin');
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 
 module.exports = {
-  mode: 'production',
+  mode: 'development',
   entry: {
     index: path.resolve(__dirname, './src/test/index.js')
   },

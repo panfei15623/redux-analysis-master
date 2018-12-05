@@ -8,7 +8,7 @@
  * from right to left. For example, compose(f, g, h) is identical to doing
  * (...args) => f(g(h(...args))).
  */
-
+// 嵌套调用 funcs 参数中的所有函数，返回一个新的函数。
 export default function compose(...funcs) {
   if (funcs.length === 0) {
     return arg => arg
