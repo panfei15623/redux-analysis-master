@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>验证中间件执行流程</title>
+</head>
+<body>
+  <script>
+    const store = {
+      dispatch(action) {
+        console.log("action-", action);
+        return action;
+      }
+    }
+
+    const A = function() {
+      console.log('1：A-start');
+      return function(next){
+        console.log('5：A-next');
+        return function(action) {
+          console.log('6：A-action', action);
+          return next(action); // 7：执行 B 的 action => {}。 10：最终返回 action
+        }
+      }
+    }
+
+    const B = function() {
+      console.log('2：B-start');
+      return function(next){
+        console.log('4：B-next');
+        return function(action) {
+          console.log('8：B-action', action);
+          return next(action); // 9：返回 action
+        }
+      }
+    }
+
+    function compose(...funcs) {
+      if (funcs.length === 0) {
+        return arg => arg
+      }
+
+      if (funcs.length === 1) {
+        return funcs[0]
+      }
+
+      return funcs.reduce((a, b) => (...args) => a(b(...args)))
+    }
+
+    const chain = [A, B].map(middleware => middleware());
+    
+    console.log('3：chain', chain);
+
+    // dispatch 是第一个中间件 A 的 action => {}
+    window.dispatch = compose(...chain)(store.dispatch);
+
+    demo = dispatch('哈哈'); // demo 结果是 action
+  </script>
+</body>
+</html>
